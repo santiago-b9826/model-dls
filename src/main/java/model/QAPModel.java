@@ -1,9 +1,8 @@
 package main.java.model;
 
-import javafx.scene.control.cell.TextFieldListCell;
-
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.Random;
 import java.util.Scanner;
 import java.util.logging.Logger;
 
@@ -17,11 +16,14 @@ public class QAPModel {
     private int size;
     private Logger logger;
     private int baseValue;
+    protected Random random;
+    protected String inPathVectorSol;
 
     public QAPModel(int size){
         this.size = size;
         this.logger = Logger.getLogger(QAPModel.class.getName());
         //System.out.println("Constructor de QAPModel invocado");
+        random = new Random();
     }
 
     public QAPModel(int size, String inPathDataProblem, String inPathVectorSol, int baseValue){
@@ -29,6 +31,7 @@ public class QAPModel {
         this.flow = new int[size][size];
         this.dist = new int[size][size];
         this.delta = new int[size][size];
+        random = new Random();
     }
 
     public QAPModel(int size, int[][] mf, int[][] md){
@@ -36,6 +39,28 @@ public class QAPModel {
         this.flow = mf;
         this.dist = md;
         this.delta = new int[size][size];
+        random = new Random();
+    }
+
+    public int getSize(){
+        final int size = this.size;
+        return size;
+    }
+
+
+    public int[] initialize(int inSeed){
+        int[] variables = new int[size];
+        for (int i = 0; i < variables.length; i++){
+            variables[i] = this.baseValue + i;
+        }
+        this.random.setSeed(inSeed);
+        for (int i = size - 1 ; i > 0; i--) {
+            int j = random.nextInt(i + 1);
+            int x = variables[i];
+            variables[i] = variables[j];
+            variables[j] = x;
+        }
+        return variables;
     }
 
     /**
@@ -152,6 +177,17 @@ public class QAPModel {
             if (d > r) r = d;
         }
         return r;
+    }
+
+    public double distance(int size, int[] conf1, int[] conf2) {
+        int count = 0;
+        for (int i = 0; i < size; i++){
+            //Logger.debug("comparing: "+conf1(i)+" - "+conf2(i));
+            if(conf1[i] != conf2[i]) count++;
+        }
+        double dis = ((double) count) / size;
+        //Console.OUT.println("distance in ModelAS = "+dis);
+        return dis;
     }
 
     /** load data
@@ -318,5 +354,18 @@ public class QAPModel {
                 System.out.print( j + " ");
             System.out.println("");
         }
+    }
+
+
+    public int nextJ(int i, int j, boolean exhaustive) {
+        ///Console.OUT.println("i= "+i+"  j= "+j+"  bp-i= "+bpi(i));
+        int newj = j;
+        if (j < 0 && exhaustive) // != 0n)
+            newj = i;
+        return newj + 1;
+    }
+
+    public int nextI(int i) {
+        return i + 1;
     }
 }
