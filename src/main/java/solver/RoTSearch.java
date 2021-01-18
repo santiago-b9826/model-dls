@@ -48,7 +48,9 @@ public class RoTSearch extends Metaheuristic{
      */
     public void initVar(){
         super.initVar();
-        Arrays.fill(tabuList, 0);
+        for(int x = 0; x < tabuList.length; x++){
+            Arrays.fill(tabuList[x], 0);
+        }
         if (this.tabuDurationFactorUS < 0){
             this.tabuDurationFactor = -this.tabuDurationFactorUS;
         } else {

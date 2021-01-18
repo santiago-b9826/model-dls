@@ -1,13 +1,36 @@
 package main.java.solver;
 
+import com.sun.org.apache.xml.internal.res.XMLErrorResources_tr;
 import main.java.model.QAPModel;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
 
 public class Metaheuristic {
     //protected move =new MovePermutation(-1n, -1n);
 
-    protected Random random;
+    public enum Type {
+        AS(0), EO(1), ROT(2);
+        private static final Map<Integer, Type> mappingMap = new HashMap<Integer, Type>();
+        static {
+            for (Type m : Type.values()) {
+                mappingMap.put(m.getValue(), m);
+            }
+        }
+        private final int func;
+        Type(int aFunc) {
+            func = aFunc;
+        }
+        public int getValue() {
+            return func;
+        }
+        public static Type getByFunc(int aFunc) {
+            return mappingMap.get(aFunc);
+        }
+    }
+
+    Random random;
     protected int nSwap;
     protected QAPModel problemModel;
 
@@ -26,10 +49,25 @@ public class Metaheuristic {
 
     public Metaheuristic(int size) {
         this.size = size;
-        this.variables = new int[size];
+        variables = new int[size];
+        random = new Random();
     }
 
+
+    public static Metaheuristic make(Type MHtype, int size){
+        switch (MHtype){
+            case EO:
+                return new EOSearch(size);
+            case ROT:
+                return new RoTSearch(size);
+            default:
+                return new AdaptiveSearch(size);
+        }
+    }
+
+
     public void configHeuristic(QAPModel problemModel/*, ParamManager opts*/) {
+        System.out.println("MetaH: config problem");
         this.problemModel = problemModel;
     }
 
@@ -57,7 +95,7 @@ public class Metaheuristic {
 //}
 
     public void initVar() {
-        this.nSwap = 0;
+        nSwap = 0;
     }
 
     public void applyLS() {
@@ -148,7 +186,18 @@ public class Metaheuristic {
     }
 
     public void initVariables() {
-        this.variables = this.problemModel.initialize(this.random.nextInt());
+        System.out.println("MetaH: init var");
+        System.out.println("initilizing model");
+        int baseValue = 0;
+        for (int i = 0; i < variables.length; i++){
+            variables[i] = baseValue + i;
+        }
+        for (int i = size - 1 ; i > 0; i--) {
+            int j = random.nextInt(i + 1);
+            int x = variables[i];
+            variables[i] = variables[j];
+            variables[j] = x;
+        }
     }
 
     public void clearProblemModel() {
@@ -166,9 +215,9 @@ public class Metaheuristic {
      * no hay nada
      * su solución
      */
-    public int[] createNewConf() {
-        return this.problemModel.initialize(this.random.nextInt());
-    }
+    //public int[] createNewConf() {
+    //    return this.problemModel.initialize(this.random.nextInt());
+    //}
 
     public int costOfSolution() {
         return this.problemModel.costOfSolution(this.size, true, variables);

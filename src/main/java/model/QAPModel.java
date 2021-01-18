@@ -24,6 +24,9 @@ public class QAPModel {
         this.logger = Logger.getLogger(QAPModel.class.getName());
         //System.out.println("Constructor de QAPModel invocado");
         random = new Random();
+        this.flow = new int[size][size];
+        this.dist = new int[size][size];
+        this.delta = new int[size][size];
     }
 
     public QAPModel(int size, String inPathDataProblem, String inPathVectorSol, int baseValue){
@@ -38,6 +41,8 @@ public class QAPModel {
         this.size = size;
         this.flow = mf;
         this.dist = md;
+        this.flow = new int[size][size];
+        this.dist = new int[size][size];
         this.delta = new int[size][size];
         random = new Random();
     }
@@ -48,7 +53,8 @@ public class QAPModel {
     }
 
 
-    public int[] initialize(int inSeed){
+    /*public int[] initialize(int inSeed){
+        System.out.println("initilizing model");
         int[] variables = new int[size];
         for (int i = 0; i < variables.length; i++){
             variables[i] = this.baseValue + i;
@@ -61,7 +67,7 @@ public class QAPModel {
             variables[j] = x;
         }
         return variables;
-    }
+    }*/
 
     /**
      *  Compute the cost difference if elements i and j are permuted
@@ -243,52 +249,34 @@ public class QAPModel {
         try{
             int i = 0;
             int j;
-            String buffer, line;
+            String line;
             int fLine = 0;
             int dLine = 0;
             while (fr.hasNextLine()){// It seems that the end of line characters '\n' are removed from the line
                 line = fr.nextLine();
                 //System.out.println("Línea: " + line);
+
+                String[] splitStr = line.split("\\s+");
                 i++;
-                buffer = ""; j = 0;
+                j = 0;
                 if (i >= 2 && i < sizeF + 2){
-                    for(char c : line.toCharArray()){
-                        if(c == ' '){
-                            if(!buffer.equals("")){
-                                if (j < sizeF){
-                                    this.flow[fLine][j++] = Integer.parseInt(buffer);
-                                }
-                            }
-                            buffer = "";
-                        }else{
-                            buffer += c;
+                    //reading flow matrix
+                    if (j < sizeF){
+                        for (int k = 0; k < sizeF; k++) {
+                            if (splitStr[k].isEmpty()){continue;}
+                            //System.out.println(k+": "+splitStr[k]);
+                            flow[fLine][k] = Integer.parseInt(splitStr[k]);;
                         }
-                    }
-                    // Get the last number before the end of line
-                    if(!buffer.equals("")){
-                        flow[fLine][j++] = Integer.parseInt(buffer);
                     }
                     fLine++;
                 }else if (i > sizeF + 2 && i <= sizeF * 2 + 2){
                     //System.out.println("mD:"+i+" :"+line);
                     // Reading Distance Matrix
-                    for(char c : line.toCharArray()){
-                        if(c == ' '){
-                            if(!buffer.equals("")){
-                                if (j < sizeF){
-                                dist[dLine][j++] = Integer.parseInt(buffer);
-                                    //System.out.println("mDist "+(dLine)+","+(j-1)+" = "+(mD(dLine)(j-1)));
-                                }
-                            }
-                            buffer = "";
-                        }else{
-                            buffer += c;
+                    if (j < sizeF){
+                        for (int k = 0; k < sizeF; k++) {
+                            if (splitStr[k].isEmpty()){continue;}
+                            dist[dLine][k] = Integer.parseInt(splitStr[k]);
                         }
-                    }
-                    // Get the last number before the end of line
-                    if(!buffer.equals("")) {
-                        dist[dLine][j++] = Integer.parseInt(buffer);
-                        //System.out.println("mDist "+(dLine)+","+(j-1)+" = "+(mD(dLine)(j-1)));
                     }
                     dLine++;
                 }

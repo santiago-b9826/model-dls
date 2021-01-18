@@ -81,8 +81,8 @@ public class EOSearch extends Metaheuristic{
         super.setMySolverType(1); 
     }
 
-    public void configHeuristic(QAPModel problemModel, ParamManager opts){
-        super.configHeuristic(problemModel, opts);
+    public void configHeuristic(QAPModel problemModel/*, ParamManager opts*/){
+        super.configHeuristic(problemModel);
         this.pdf = new double[problemModel.getSize() + 1];// +1 since x in 1..size
         this.fit = new int[problemModel.getSize()];
         this.expDown = 6.385378048 * Math.pow(problemModel.getSize(), -1.033400799);
@@ -90,9 +90,9 @@ public class EOSearch extends Metaheuristic{
         this.powDown = 1.575467001 * Math.pow(problemModel.getSize(), -0.1448643794);
         this.powUp = 2.426369897 * Math.pow(problemModel.getSize(), -0.1435045369);
         //Jason: Se cambia la forma como estan siendo leidos los parametros.
-        this.tauUserSel = opts("-EO_t", (1.0 + 1.0 / Math.log(problemModel.getSize())));
-        this.pdfUserSel = opts("-EO_p", -1);
-        this.selSecond = opts("-EO_ss", 1);
+        this.tauUserSel =  1.0 + 1.0 / Math.log(problemModel.getSize());//opts("-EO_t", (1.0 + 1.0 / Math.log(problemModel.getSize())));
+        this.pdfUserSel = -1; //opts("-EO_p", -1);
+        this.selSecond = 1; //opts("-EO_ss", 1);
     }
 
     /**

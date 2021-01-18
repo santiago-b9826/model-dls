@@ -7,7 +7,6 @@ import java.util.Arrays;
 public class AdaptiveSearch extends Metaheuristic{
     private int[] mark;
     private int listInb;
-    private int listJnb;
 
     private MovePermutation[] listIJ;
     private int[] listI;
@@ -24,9 +23,6 @@ public class AdaptiveSearch extends Metaheuristic{
     private int nSameVarTot;
     private int nLocalMinTot;
     private int nInPlateau;
-
-    /** For Exhaustive search */
-    private int nListIJ;
 
     /** Parameters of the AS solver */
     private int nVarToReset;
@@ -199,7 +195,7 @@ public class AdaptiveSearch extends Metaheuristic{
 
         do {
             flagOut = false;
-            this.listJnb = 0;
+            int listJnb = 0;
             nCost = currentCost;
             j = -1;
             while((j = problemModel.nextJ(first, j, false)) < super.problemModel.getSize()){// false if j < 0 //solverP.exhaustive???
@@ -210,7 +206,7 @@ public class AdaptiveSearch extends Metaheuristic{
                 if (this.probSelectLocMin <= 100 && j == first) continue;
 
                 if (cost < nCost){
-                    this.listJnb = 1;
+                    listJnb = 1;
                     nCost = cost;
                     second = j;
                     if (this.firstBest){
@@ -218,18 +214,18 @@ public class AdaptiveSearch extends Metaheuristic{
                         return nCost;
                     }
                 } else if (cost == nCost){
-                    if (random.nextInt(++this.listJnb) == 0)
+                    if (random.nextInt(++listJnb) == 0)
                     second = j;
                 }
             }
 
             if (this.probSelectLocMin <= 100) {
-                if (nCost >= currentCost && (random.nextInt(100) < this.probSelectLocMin ||(this.listInb <= 1 && this.listJnb <= 1))) {
+                if (nCost >= currentCost && (random.nextInt(100) < this.probSelectLocMin ||(this.listInb <= 1 && listJnb <= 1))) {
                     second = first;
                     super.move.setSecond(second);
                     return nCost;
                 }
-                if (this.listJnb == 0) {
+                if (listJnb == 0) {
                     //this.nIter++;
                     int sel = random.nextInt(this.listInb);
                     first = listI[sel];
@@ -252,7 +248,8 @@ public class AdaptiveSearch extends Metaheuristic{
         int first;
         int second;
         //x : Int;
-        this.nListIJ = 0;
+        /** For Exhaustive search */
+        int nListIJ = 0;
         int nCost = Integer.MAX_VALUE ;
         this.nVarMarked = 0;
         first = -1;
@@ -271,22 +268,22 @@ public class AdaptiveSearch extends Metaheuristic{
                 if (x <= nCost) {
                     if (x < nCost) {
                         nCost = x;
-                        this.nListIJ = 0;
+                        nListIJ = 0;
                         if (this.firstBest && x < currentCost) {
                             super.move.setFirst(first);
                             super.move.setSecond(second);
                             return nCost;
                         }
                     }
-                    this.listIJ[this.nListIJ] = new MovePermutation(first,second);
-                    this.nListIJ = ((this.nListIJ + 1) % super.problemModel.getSize());
+                    this.listIJ[nListIJ] = new MovePermutation(first,second);
+                    nListIJ = ((nListIJ + 1) % super.problemModel.getSize());
                 }
             }
         }
 
-        this.nSameVar += this.nListIJ;
+        this.nSameVar += nListIJ;
         if (nCost >= currentCost) {
-            if (this.nListIJ == 0 || (( this.probSelectLocMin <= 100) && random.nextInt(100) < this.probSelectLocMin)) {
+            if (nListIJ == 0 || (( this.probSelectLocMin <= 100) && random.nextInt(100) < this.probSelectLocMin)) {
                 int i;
                 for(i = 0; super.nSwap < mark[i]; i++){}
                 super.move.setFirst(i);
@@ -295,14 +292,14 @@ public class AdaptiveSearch extends Metaheuristic{
             }
 
             int lm;
-            if (!(this.probSelectLocMin <= 100) && (lm = random.nextInt(this.nListIJ + super.problemModel.getSize())) < super.problemModel.getSize()) {
+            if (!(this.probSelectLocMin <= 100) && (lm = random.nextInt(nListIJ + super.problemModel.getSize())) < super.problemModel.getSize()) {
                 super.move.setFirst(lm);
                 super.move.setSecond(lm);
                 return nCost;//goto end;
             }
         }
 
-        int sel = random.nextInt(this.nListIJ);
+        int sel = random.nextInt(nListIJ);
         super.move.setFirst(listIJ[sel].getFirst());
         super.move.setSecond(listIJ[sel].getSecond());
         return nCost;
