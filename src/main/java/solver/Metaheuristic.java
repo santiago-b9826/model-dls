@@ -68,7 +68,7 @@ public class Metaheuristic {
 
     public void configHeuristic(QAPModel problemModel/*, ParamManager opts*/) {
         System.out.println("MetaH: config problem");
-        this.problemModel = problemModel;
+        this.problemModel = new QAPModel(problemModel);
     }
 
     /**

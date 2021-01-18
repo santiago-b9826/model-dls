@@ -134,7 +134,7 @@ public class RoTSearch extends Metaheuristic{
 
 
         if(move.getFirst() == Integer.MAX_VALUE){
-            System.out.println("All moves are tabu!");
+            //System.out.println("All moves are tabu!");
             return currentCost;
         }else{
             //System.out.println("swap pos "+move.getFirst()+" "+move.getSecond());

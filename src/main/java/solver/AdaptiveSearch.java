@@ -44,15 +44,14 @@ public class AdaptiveSearch extends Metaheuristic{
         this.mark = new int[problemModel.getSize()];
         this.listIJ = new MovePermutation[problemModel.getSize()];
         this.listI = new int[problemModel.getSize()];
-        /*this.nVarToReset = opts("--AS_varToReset",-1);
-        this.resetPercent = opts("--AS_resetPer",10n);
-        this.freezeLocMin = opts("--AS_freezeLocMin",5n);
-        this.freezeSwap = opts("--AS_freezeSwap",5n);
-        this.resetLimit = opts("--AS_resetLimit",5n);
-        this.probSelectLocMin = opts("--AS_probSelecLocMin", 0n);
-        this.firstBest = opts("--AS_firstBest",0n) == 1n;
-        this.exhaustive = opts("--AS_exhaustive",0n) == 1n;
-        */
+        this.nVarToReset = -1; //opts("--AS_varToReset",-1);
+        this.resetPercent = 10; //opts("--AS_resetPer",10n);
+        this.freezeLocMin = 5; //opts("--AS_freezeLocMin",5n);
+        this.freezeSwap = 5; //opts("--AS_freezeSwap",5n);
+        this.resetLimit = 5; //opts("--AS_resetLimit",5n);
+        this.probSelectLocMin = 0; //opts("--AS_probSelecLocMin", 0n);
+        this.firstBest = false; //opts("--AS_firstBest",0n) == 1n;
+        this.exhaustive = false; //opts("--AS_exhaustive",0n) == 1n;
     }
 
 

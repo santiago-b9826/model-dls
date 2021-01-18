@@ -5,8 +5,9 @@ import main.java.solver.Metaheuristic;
 
 import java.util.Date;
 import java.util.Random;
+import java.util.concurrent.RecursiveAction;
 
-public class Worker {
+public class Worker extends RecursiveAction {
     private double seed;
     private Date startTime;
     private Date endTime;
@@ -108,7 +109,7 @@ public class Worker {
     }
    */
 
-    public void start(int targetCost, boolean strictLow) {
+    public void start() {
         System.out.println("MsgType_0. Arrancando");
         //val refsToPlaces = pointersComunication;
         //stats.setTarget(targetCost);
@@ -126,7 +127,7 @@ public class Worker {
         //heuristicSolver.setSeed(random.nextLong());
         System.out.println("Starting solving process in Meta type "+ MHType.toString());
         double time = -System.nanoTime();
-        cost = solve(targetCost, strictLow);
+        cost = solve();
         time += System.nanoTime();
 
         System.out.println("Solving process finished Meta type "+ MHType.toString()+". Time: "+time+" final cost: "+ cost);
@@ -164,11 +165,15 @@ public class Worker {
           //  this.nodeConfig.setUpdateI(2n * this.nodeConfig.getReportI());
     }
 
+    public void setLimits(int tCost, boolean sLow){
+        target = tCost;
+        strictLow = sLow;
+    }
 
 
-    public int solve(int tCost, boolean sLow) {
+    public int solve() {
         System.out.println("MsgType_0. pasando por solve.");
-        initVar(tCost, sLow);
+        initVar(target, strictLow);
         //if(this.heuristicSolver instanceof PopulBasedHeuristic){
         //	this.heuristicSolver.applyLS();
         //}
@@ -185,8 +190,8 @@ public class Worker {
             bestCost = Integer.MAX_VALUE;
 
         //var count:Int = 1n;
-        while(this.currentCost != 0){
-            if (this.nIter >= 100){ //TODO: get parameter//this.nodeConfig.getMaxIters()){
+        while(this.currentCost != target){
+            if (this.nIter >= 1000){ //TODO: get parameter//this.nodeConfig.getMaxIters()){
                 //restart or finish
                 if(nRestart >= 3){ //TODO: get parameter //this.nodeConfig.getMaxRestarts()){
                     break;
@@ -408,4 +413,9 @@ public class Worker {
                 }
             }*/
         }
+
+    @Override
+    protected void compute() {
+        start();
+    }
 }

@@ -1,6 +1,7 @@
 package main.java;
 
 import java.util.List;
+import java.util.concurrent.ForkJoinPool;
 
 public class Team {
 
@@ -24,8 +25,16 @@ public class Team {
     public void start(){
         int targetCost = 0; //TODO: get parameters from configuration
         boolean strictLow = false;
+        ForkJoinPool myPool = new ForkJoinPool(Runtime.getRuntime().availableProcessors());
+
         for (Worker w: workers) {
-            w.start(targetCost, strictLow);
+            w.setLimits(targetCost, strictLow);
+            myPool.submit(w);
         }
+
+        for (Worker w: workers) {
+            w.join();
+        }
+        System.out.println("Team: all workers have finished");
     }
 }

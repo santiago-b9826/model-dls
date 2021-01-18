@@ -29,6 +29,16 @@ public class QAPModel {
         this.delta = new int[size][size];
     }
 
+    public QAPModel(QAPModel model){
+        this.size = model.getSize();
+        this.logger = Logger.getLogger(QAPModel.class.getName());
+        //System.out.println("Constructor de QAPModel invocado");
+        random = new Random();
+        this.flow = model.flow.clone();
+        this.dist = model.dist.clone();
+        this.delta = model.delta.clone();
+    }
+
     public QAPModel(int size, String inPathDataProblem, String inPathVectorSol, int baseValue){
         this.size = size;
         this.flow = new int[size][size];
@@ -201,13 +211,18 @@ public class QAPModel {
      *  @param filePath path of the data file to be loaded
      *  @return true if success, false if filePath is a directory
      */
-    public boolean loadData(String filePath) throws FileNotFoundException {
+    public boolean loadData(String filePath){
         long loadTime = -System.nanoTime();
         File filep = new File(filePath);
         if (filep.isDirectory()) return false;
         System.out.println("\n--   Solving "+filePath+" ");
         //Load first line with headers size p1 p2
-        Scanner fr = new Scanner(filep);
+        Scanner fr = null;
+        try {
+            fr = new Scanner(filep);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
         String fLine = fr.nextLine(); //get first line
         int[] header = readParameters(fLine);
         int sizeF = header[0];
