@@ -124,9 +124,12 @@ public class Worker {
             //}
         }*/
         //heuristicSolver.setSeed(random.nextLong());
+        System.out.println("Starting solving process in Meta type "+ MHType.toString());
         double time = -System.nanoTime();
         cost = solve(targetCost, strictLow);
         time += System.nanoTime();
+
+        System.out.println("Solving process finished Meta type "+ MHType.toString()+". Time: "+time+" final cost: "+ cost);
         interTeamKill = true;
     }
 
@@ -215,7 +218,7 @@ public class Worker {
             //if(solForDiv){
             //	this.heuristicSolver.tryInsertIndividual();
             //}
-            System.out.println("In main LOOP  time "+(System.nanoTime() - this.initialTime) +" cost="+this.currentCost);
+            //System.out.println("In main LOOP  time "+(System.nanoTime() - this.initialTime) +" cost="+this.currentCost);
             //Time out
             int maxTime = 1000;
             if(maxTime > 0 ){ //TODO: get parameter //nodeConfig.getMaxTime() > 0){
@@ -238,7 +241,7 @@ public class Worker {
         //this.heuristicSolver.printPopulation();
         System.out.println("Saliendo best cost: "+ bestCost+ "  iters: "+ nIterTot);
         updateTotStats();
-        return this.currentCost;
+        return this.bestCost;
     }
 
 

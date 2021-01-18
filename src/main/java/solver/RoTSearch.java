@@ -35,8 +35,8 @@ public class RoTSearch extends Metaheuristic{
     public void configHeuristic(QAPModel problemModel /*, opts:ParamManager*/){
         super.configHeuristic(problemModel/*, opts*/);
         this.tabuList = new int[problemModel.getSize()][problemModel.getSize()];
-        //this.tabuDurationFactorUS = opts("-RoTS_t", -1.0);
-        //this.aspirationFactorUS = opts("-RoTS_a", -1.0);
+        this.tabuDurationFactorUS = -1; //opts("-RoTS_t", -1.0);
+        this.aspirationFactorUS = -1; //opts("-RoTS_a", -1.0);
     }
 
     private int tabuDurationLower;
@@ -90,7 +90,7 @@ public class RoTSearch extends Metaheuristic{
         for (i = 0; i < super.problemModel.getSize() - 1; i++){
             for (j = i + 1; j < super.problemModel.getSize(); j++) {
                 newCost = problemModel.costIfSwap(currentCost,i,j);
-                //Console.OUT.println("Costifswap in RoTS " + i + "," + j + ": " + newCost);
+                //System.out.println("Costifswap in RoTS " + i + "," + j + ": " + newCost);
                 delta = newCost - currentCost;
 
                 this.autorized =
@@ -137,7 +137,7 @@ public class RoTSearch extends Metaheuristic{
             System.out.println("All moves are tabu!");
             return currentCost;
         }else{
-            //Console.OUT.println("swap pos "+move.getFirst()+" "+move.getSecond());
+            //System.out.println("swap pos "+move.getFirst()+" "+move.getSecond());
             swapVariables(move.getFirst(), move.getSecond()); //adSwap(maxI, minJ,csp);	
             nSwap++;
             //sz =  super.problemModel.size;
@@ -147,9 +147,8 @@ public class RoTSearch extends Metaheuristic{
             //tabuList( move.getFirst(), cop_.variables(move.getSecond())) = this.nIter + (cube() * this.tabuDuration) as Int;
             int t1, t2;
             // t1 = (cube() * this.tabuDuration) as Int; 
-            // t2 = (cube() * this.tabuDuration) as Int; 
+            // t2 = (cube() * this.tabuDuration) as Int;
             do t1 = (int) (cube() * this.tabuDuration); while(t1 <= 2);
-
             do t2 = (int) (cube() * this.tabuDuration); while(t2 <= 2);
 
 
@@ -161,9 +160,9 @@ public class RoTSearch extends Metaheuristic{
             //if (minDelta >= 0)
             //	onLocMin();
 
+            //System.out.println("ROT end search iteratrion ");
             return currentCost + minDelta;
         }
-
     }
 
     public int randomInterval(int low, int up) {
