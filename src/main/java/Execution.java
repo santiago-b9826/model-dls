@@ -27,7 +27,7 @@ public class Execution {
         // TEAM 1
         List<Worker> workersT1 = new ArrayList<Worker>();
         for (int i = 0; i < 3; i++){
-            workersT1.add(new Worker(size, Metaheuristic.Type.getByType(i), model));
+            workersT1.add(new Worker(size, i, new QAPModel(model)));
         }
         List<Pool> poolsT1 = new ArrayList<Pool>();
         poolsT1.add(new Pool(size));

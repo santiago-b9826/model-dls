@@ -35,10 +35,11 @@ public class Worker extends RecursiveAction {
 
     private Metaheuristic.Type MHType;
 
-    public Worker(int size, Metaheuristic.Type MHType, QAPModel model) {
+    public Worker(int size, int type, QAPModel model) {
         super();
         bestConf = new int[size];
-        this.MHType = MHType;
+        this.MHType = Metaheuristic.Type.getByType(type);
+        System.out.println("Worker in QAP: "+ model);
         metaheuristic =  Metaheuristic.make(MHType, size);
         metaheuristic.configHeuristic(model);
         //metaheuristic.configHeuristic(new QAPModel(model));
@@ -109,7 +110,7 @@ public class Worker extends RecursiveAction {
         bestCost = currentCost; //Best solution is the initial solution
 
         while(currentCost >= 0){
-            if (nIter >= 1000){ //TODO: get parameter//this.nodeConfig.getMaxIters()){
+            if (nIter >= 1000000){ //TODO: get parameter//this.nodeConfig.getMaxIters()){
                 //restart or finish
                 if(nRestart >= 0){ //TODO: get parameter //this.nodeConfig.getMaxRestarts()){
                     break;
@@ -135,9 +136,9 @@ public class Worker extends RecursiveAction {
                 break;  // kill: End solving process
             }
 
-            //System.out.println("Type:"+MHType.toString()+" In main LOOP  time "+(System.nanoTime() - this.initialTime) +" cost="+this.currentCost);
+            //System.out.println("Type:"+MHType.toString()+" In main LOOP  time "+(System.nanoTime() - this.initialTime)/1e6 +" cost="+this.currentCost);
             //Time out
-            int maxTime = 1000;
+            int maxTime = 100000;
             if(maxTime > 0 ){ //TODO: get parameter //nodeConfig.getMaxTime() > 0){
                 double eTime = System.nanoTime() - this.initialTime;
                 if(eTime/1e6 >= maxTime){ //comparison in miliseconds
@@ -145,6 +146,7 @@ public class Worker extends RecursiveAction {
                     //	 + ". mi costo: " + bestCost + ", mis variables: ");
                     //printVector(bestConf);
                     //Logger.debug(()=>{" Time Out"});
+                    System.out.println("Time out!");
                     break;
                 }
             }
@@ -156,9 +158,8 @@ public class Worker extends RecursiveAction {
             interact();
         }
         //this.heuristicSolver.printPopulation();
-        System.out.println(MHType.toString()+": Saliendo best cost: "+ bestCost+ "  iters: "+ nIterTot);
         updateTotStats();
-
+        System.out.println(MHType.toString()+": Saliendo best cost: "+ bestCost+ "  iters: "+ nIterTot);
         metaheuristic.verify(bestConf);
 
         return this.bestCost;

@@ -1,7 +1,11 @@
 package main.java;
 
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.ForkJoinPool;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class Team {
 
@@ -26,18 +30,23 @@ public class Team {
         boolean strictLow = false;
         int nProc = Runtime.getRuntime().availableProcessors();
         System.out.println("Número de procesos = "+nProc);
-        //ForkJoinPool myPool = new ForkJoinPool(nProc);
 
-        for (Worker w: workers) {
+        //ExecutorService EXEC = Executors.newCachedThreadPool();
+
+        ForkJoinPool myPool = new ForkJoinPool(nProc);
+
+        for (int i = 0; i < workers.size(); i++) {
             //w.setLimits(targetCost, strictLow);
-            //myPool.invoke(w);
-            //w.compute();
-            w.fork();
+            myPool.submit(workers.get(i));
+            //workers.get(i).compute();
+            //w.fork();
         }
 
-        for (Worker w: workers) {
-            w.join();
+        for (int i = 0; i < workers.size(); i++)  {
+            workers.get(i).join();
         }
+
+        //workers.parallelStream().map(w -> w.solve()).collect(Collectors.toList());
         System.out.println("Team: all workers have finished");
     }
 }

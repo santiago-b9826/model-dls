@@ -35,15 +35,14 @@ public class QAPModel {
         logger = Logger.getLogger(QAPModel.class.getName());
         //System.out.println("Constructor de QAPModel invocado");
         random = new Random();
-        flow = model.flow.clone();
-        dist = model.dist.clone();
-        delta = model.delta.clone();
+        flow = model.flow;
+        dist = model.dist;
+        delta = new int[size][size];
         opt = model.opt;
         bound = model.bound;
         bks = model.bks;
         baseValue = model.baseValue;
     }
-
 
     public int getSize(){
         return size;
@@ -56,7 +55,7 @@ public class QAPModel {
     public int computeDelta(int i, int j, int[] variables) {
         int pI = variables[i];
         int pJ = variables[j];
-        int k, pK;
+        int k;
         int dis = (flow[i][i] - flow[j][j]) * (dist[pJ][pJ] - dist[pI][pI]) +
                 (flow[i][j] - flow[j][i]) * (dist[pJ][pI] - dist[pI][pJ]);
 

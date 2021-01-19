@@ -3,6 +3,7 @@ package main.java.solver;
 import main.java.model.QAPModel;
 
 import java.util.Arrays;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class AdaptiveSearch extends Metaheuristic{
     private int[] mark;
@@ -49,7 +50,7 @@ public class AdaptiveSearch extends Metaheuristic{
         freezeLocMin = 5; //opts("--AS_freezeLocMin",5n);
         freezeSwap = 5; //opts("--AS_freezeSwap",5n);
         resetLimit = 5; //opts("--AS_resetLimit",5n);
-        probSelectLocMin = 0; //opts("--AS_probSelecLocMin", 0n);
+        probSelectLocMin = 60; //opts("--AS_probSelecLocMin", 0n);
         firstBest = false; //opts("--AS_firstBest",0n) == 1n;
         exhaustive = false; //opts("--AS_exhaustive",0n) == 1n;
     }
@@ -168,10 +169,10 @@ public class AdaptiveSearch extends Metaheuristic{
             }
         }
         if (listInb == 0) // all variables are OK but the global cost is > 0 (can occur in SMTI with no BP but singles)
-        maxVar = random.nextInt(problemModel.getSize());
+        maxVar = ThreadLocalRandom.current().nextInt(problemModel.getSize());
  		else {
             // select a maxCost variable from array
-            int sel = random.nextInt(listInb);
+            int sel = ThreadLocalRandom.current().nextInt(listInb);
             maxVar = listI[sel]; //This maxI must be local or only returns the value
         }
         nSameVar += listInb;
@@ -187,7 +188,7 @@ public class AdaptiveSearch extends Metaheuristic{
     private int selectVarMinConflict(int currentCost) {
         int j;
         int cost;
-        boolean flagOut = false;
+        boolean flagOut;
         int second = -1;
         int nCost;
         int first = move.getFirst();
@@ -197,7 +198,7 @@ public class AdaptiveSearch extends Metaheuristic{
             int listJnb = 0;
             nCost = currentCost;
             j = -1;
-            while((j = problemModel.nextJ(first, j, false)) < problemModel.getSize()){// false if j < 0 //solverP.exhaustive???
+            while(++j < problemModel.getSize()){// false if j < 0 //solverP.exhaustive???
                 if (nSwap < mark[j]) {
                     continue;
                 }
@@ -213,20 +214,20 @@ public class AdaptiveSearch extends Metaheuristic{
                         return nCost;
                     }
                 } else if (cost == nCost){
-                    if (random.nextInt(++listJnb) == 0)
-                    second = j;
+                    if (ThreadLocalRandom.current().nextInt(++listJnb) == 0)
+                        second = j;
                 }
             }
 
             if (probSelectLocMin <= 100) {
-                if (nCost >= currentCost && (random.nextInt(100) < probSelectLocMin ||(listInb <= 1 && listJnb <= 1))) {
+                if (nCost >= currentCost && (ThreadLocalRandom.current().nextInt(100) < probSelectLocMin || (listInb <= 1 && listJnb <= 1))) {
                     second = first;
                     move.setSecond(second);
                     return nCost;
                 }
                 if (listJnb == 0) {
                     //this.nIter++;
-                    int sel = random.nextInt(listInb);
+                    int sel = ThreadLocalRandom.current().nextInt(listInb);
                     first = listI[sel];
                     move.setFirst(first);
                     flagOut = true;
@@ -282,7 +283,7 @@ public class AdaptiveSearch extends Metaheuristic{
 
         nSameVar += nListIJ;
         if (nCost >= currentCost) {
-            if (nListIJ == 0 || (( probSelectLocMin <= 100) && random.nextInt(100) < probSelectLocMin)) {
+            if (nListIJ == 0 || (( probSelectLocMin <= 100) && ThreadLocalRandom.current().nextInt(100) < probSelectLocMin)) {
                 int i;
                 for(i = 0; nSwap < mark[i]; i++){}
                 move.setFirst(i);
@@ -291,14 +292,14 @@ public class AdaptiveSearch extends Metaheuristic{
             }
 
             int lm;
-            if (!(probSelectLocMin <= 100) && (lm = random.nextInt(nListIJ + problemModel.getSize())) < problemModel.getSize()) {
+            if (!(probSelectLocMin <= 100) && (lm = ThreadLocalRandom.current().nextInt(nListIJ + problemModel.getSize())) < problemModel.getSize()) {
                 move.setFirst(lm);
                 move.setSecond(lm);
                 return nCost;//goto end;
             }
         }
 
-        int sel = random.nextInt(nListIJ);
+        int sel = ThreadLocalRandom.current().nextInt(nListIJ);
         move.setFirst(listIJ[sel].getFirst());
         move.setSecond(listIJ[sel].getSecond());
         return nCost;

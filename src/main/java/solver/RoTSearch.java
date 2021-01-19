@@ -3,6 +3,7 @@ package main.java.solver;
 import main.java.model.QAPModel;
 
 import java.util.Arrays;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class RoTSearch extends Metaheuristic{
 
@@ -60,7 +61,7 @@ public class RoTSearch extends Metaheuristic{
         tabuDuration = (int)(tabuDurationFactor * problemModel.getSize());
         //Console.OUT.println("this.tabuDuration: " + this.tabuDuration);
         if (aspirationFactorUS == -1.0)
-            aspirationFactor = al + (au - al) * random.nextDouble();
+            aspirationFactor = al + (au - al) * ThreadLocalRandom.current().nextDouble();
         else
             aspirationFactor = aspirationFactorUS;
         //Console.OUT.println("this.aspirationFactor: " + this.aspirationFactor);
@@ -166,11 +167,11 @@ public class RoTSearch extends Metaheuristic{
     }
 
     public int randomInterval(int low, int up) {
-        return (int)(random.nextDouble()*(up - low + 1)) + low;
+        return (int)(ThreadLocalRandom.current().nextDouble()*(up - low + 1)) + low;
     }
 
     private double cube(){
-        double ran1 = random.nextDouble();
+        double ran1 = ThreadLocalRandom.current().nextDouble();
         if (tabuDurationFactorUS < 0)
             return ran1;
         return ran1 * ran1 * ran1;

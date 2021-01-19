@@ -5,7 +5,7 @@ import main.java.model.QAPModel;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class Metaheuristic {
     //protected move =new MovePermutation(-1n, -1n);
@@ -30,7 +30,7 @@ public class Metaheuristic {
         }
     }
 
-    Random random;
+    //Random random;
     protected int nSwap;
     protected QAPModel problemModel;
 
@@ -42,7 +42,7 @@ public class Metaheuristic {
     public Metaheuristic(int size) {
         this.size = size;
         variables = new int[size];
-        random = new Random();
+        //random = new Random();
     }
 
 
@@ -69,6 +69,7 @@ public class Metaheuristic {
     public void configHeuristic(QAPModel problemModel/*, ParamManager opts*/) {
         System.out.println("MetaH: config problem");
         this.problemModel = problemModel;
+        System.out.println("In metaH "+this.problemModel);
     }
 
     /**
@@ -78,8 +79,8 @@ public class Metaheuristic {
     public int search(int currentCost, int bestCost, int nIter) {
         // Swap two random variables
         int size = problemModel.getSize();
-        move.setFirst(random.nextInt(problemModel.getSize()));
-        move.setSecond(random.nextInt(problemModel.getSize()));
+        move.setFirst(ThreadLocalRandom.current().nextInt(problemModel.getSize()));
+        move.setSecond(ThreadLocalRandom.current().nextInt(problemModel.getSize()));
         swapVariables(move.getFirst(), move.getSecond());
         nSwap++;
         problemModel.executedSwap(move.getFirst(), move.getSecond(), variables);
@@ -109,9 +110,9 @@ public class Metaheuristic {
         return nSwap;
     }
 
-    public void setSeed(long inSeed) {
-        this.random = new Random(inSeed/* + here.id*/);
-    }
+    /*public void setSeed(long inSeed) {
+        this.random = new Random(inSeed + here.id);
+    }*/
 
     //public void setSolverType(int mySolverType) {
     //    this.mySolverType = mySolverType;
@@ -173,8 +174,8 @@ public class Metaheuristic {
 
     public int reset(int n, int totalCost) {
         while (n-- != 0) {
-            int i = random.nextInt(variables.length);
-            int j = random.nextInt(variables.length);
+            int i = ThreadLocalRandom.current().nextInt(variables.length);
+            int j = ThreadLocalRandom.current().nextInt(variables.length);
             swapVariables(i, j);
             //System.out.println("Este es el While problematico");
         }
@@ -192,7 +193,7 @@ public class Metaheuristic {
             variables[i] = baseValue + i;
         }
         for (int i = size - 1 ; i > 0; i--) {
-            int j = random.nextInt(i + 1);
+            int j = ThreadLocalRandom.current().nextInt(i + 1);
             int x = variables[i];
             variables[i] = variables[j];
             variables[j] = x;

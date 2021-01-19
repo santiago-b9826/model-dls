@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class EOSearch extends Metaheuristic{
 
@@ -114,9 +115,9 @@ public class EOSearch extends Metaheuristic{
 
         if (tauUserSel == -1.0 ) { // Select a random tau from 0 to tau
             if (pdfS == Func.POWER) {
-                tau = powDown + (powUp - powDown) * random.nextDouble();
+                tau = powDown + (powUp - powDown) * ThreadLocalRandom.current().nextDouble();
             }else if (pdfS == Func.EXPONENTIAL) {
-                tau = expDown + (expUp - expDown) * random.nextDouble();
+                tau = expDown + (expUp - expDown) * ThreadLocalRandom.current().nextDouble();
             }
         }else {
             tau = tauUserSel;
@@ -172,7 +173,7 @@ public class EOSearch extends Metaheuristic{
 
 
     private int pdfPick() {
-        double p = random.nextDouble();
+        double p = ThreadLocalRandom.current().nextDouble();
         double fx;
         int x = 0;
         while( (fx = pdf[++x]) < p ){
@@ -220,7 +221,7 @@ public class EOSearch extends Metaheuristic{
             if ( cCost < sCost)   // descending order
                 break;
 
-            if (cCost == sCost && random.nextInt(++nSameFit) == 0)
+            if (cCost == sCost && ThreadLocalRandom.current().nextInt(++nSameFit) == 0)
             selIndex = fit[k] & 0x3FF;
         }
         // Save first variable selected into the move object
@@ -246,7 +247,7 @@ public class EOSearch extends Metaheuristic{
                 minCost = cost;
                 second = j;
                 nSameMin = 1;
-            } else if (cost == minCost && random.nextInt(++nSameMin) == 0){
+            } else if (cost == minCost && ThreadLocalRandom.current().nextInt(++nSameMin) == 0){
                 second = j;
             }
         }
@@ -255,7 +256,7 @@ public class EOSearch extends Metaheuristic{
     }
 
     private int selSecondRandom(int currentCost) {
-        int randomJ = random.nextInt(problemModel.getSize());
+        int randomJ = ThreadLocalRandom.current().nextInt(problemModel.getSize());
         int newCost = problemModel.costIfSwap(currentCost, randomJ, move.getFirst());
         move.setSecond(randomJ);
         return newCost;
@@ -299,9 +300,9 @@ public class EOSearch extends Metaheuristic{
                 tau = intau;
             } else {
                 if (pdfS == Func.POWER) {
-                    tau = powDown + (powUp - powDown) * random.nextDouble();
+                    tau = powDown + (powUp - powDown) * ThreadLocalRandom.current().nextDouble();
                 }else if (pdfS == Func.EXPONENTIAL) {
-                    tau = expDown + (expUp - expDown) * random.nextDouble();
+                    tau = expDown + (expUp - expDown) * ThreadLocalRandom.current().nextDouble();
                 }
             }
             initPDF(pdfS);
@@ -309,7 +310,7 @@ public class EOSearch extends Metaheuristic{
     }
     private static class RandomEnum<E extends Enum<E>> {
 
-        private static final Random RND = new Random();
+        //private static final Random RND = new Random();
         private final E[] values;
 
         public RandomEnum(Class<E> token) {
@@ -317,7 +318,7 @@ public class EOSearch extends Metaheuristic{
         }
 
         public E random() {
-            return values[RND.nextInt(values.length)];
+            return values[ThreadLocalRandom.current().nextInt(values.length)];
         }
     }
 }
