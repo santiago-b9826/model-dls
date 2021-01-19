@@ -11,6 +11,13 @@ public class Worker extends RecursiveAction {
     private Metaheuristic metaheuristic;
     private int id;
 
+    private int reportI;
+    private int updateI;
+
+    private Pool reportPool;
+    private Pool updatePool;
+
+
     private int currentCost;
     private int[] bestConf;
     private int bestCost;
@@ -28,14 +35,24 @@ public class Worker extends RecursiveAction {
     private int nSwapTot;
     private int itersWhitoutImprovements;
 
+    public int getnChange() {
+        return nChange;
+    }
+
+    private int nChange;
+
     private long initialTime;
 
     private Metaheuristic.Type MHType;
 
     private AtomicBoolean kill;
 
-    public Worker(int id, int size, int type, QAPModel model) {
+    public Worker(int id, int size, int type, QAPModel model, int reportI, int updateI, Pool reportPool, Pool updatePool) {
         super();
+        this.updatePool = updatePool;
+        this.reportPool = reportPool;
+        this.reportI = reportI;
+        this.updateI = updateI;
         this.id = id;
         bestConf = new int[size];
         this.MHType = Metaheuristic.Type.getByType(type);
@@ -79,7 +96,7 @@ public class Worker extends RecursiveAction {
         // Comm
         //bestSent = false;
         //nForceRestart = 0n;
-        //nChangeV = 0n;
+        nChange = 0;
         //nChangeforiwi = 0n;
         //attempsChangeForIwi = 0n;
 
@@ -154,7 +171,7 @@ public class Worker extends RecursiveAction {
         }
         //this.heuristicSolver.printPopulation();
         updateTotStats();
-        System.out.println(MHType.toString()+"-"+id+": Saliendo best cost: "+ bestCost+ "  iters: "+ nIterTot);
+        System.out.println(MHType.toString()+"-"+id+": Saliendo best cost: "+ bestCost+ "  iters: "+ nIterTot + " Changes: "+nChange);
         metaheuristic.verify(bestConf);
 
         for(int i = 0; i < bestConf.length; i++)
@@ -223,21 +240,6 @@ public class Worker extends RecursiveAction {
         //}
     }
 
-    public boolean announceWinner(int p) {
-        //val refsToPlaces = pointersComunication;
-        /*val result = winnerLatch.compareAndSet(false, true);
-        if (result)	{
-            //finish{ //Jason:Puse este finish a ver que pasa con la terminación de la ejecución.
-            for (k in Place.places())
-                if (p != k.id){
-                    at(k) refsToPlaces().kill(); // at(k) async ss().kill();  // Testing the use of this async v1
-                }
-            //}
-        }
-        //winnerLatch.set(false); //Jason: Esto fue solo para probar que no se quede colgado
-        return result;*/ return false;
-    }
-
     private void updateTotStats(){
         //Console.OUT.println("Ingresa a reportar las estadisticas totales");
         nIterTot += nIter;
@@ -257,6 +259,17 @@ public class Worker extends RecursiveAction {
     }
 
     private void interactForIntensification(){
+        if(nIter % reportI == 0){
+            reportPool.sendInfo(new ContextInformation(metaheuristic.variables.clone(), currentCost, MHType));
+        }
+        if(nIter % updateI == 0){
+            ContextInformation recv = updatePool.getInfo();
+            if(recv.getCost() <= currentCost){
+                metaheuristic.variables = recv.getVariables().clone();
+                currentCost = metaheuristic.costOfSolution();
+                nChange++;
+            }
+        }
 
         /*if(nodeConfig.getRol() != CPLSOptionsEnum.NodeRoles.MASTER_NODE){
             if( nodeConfig.getReportI() != 0 && this.nIter %  this.nodeConfig.getReportI() == 0){

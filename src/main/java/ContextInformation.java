@@ -7,6 +7,13 @@ public class ContextInformation {
     int cost;
     Metaheuristic.Type type;
 
+    public ContextInformation(int[] variables, int cost, Metaheuristic.Type type) {
+        this.variables = variables;
+        this.cost = cost;
+        this.type = type;
+    }
+
+
     public int[] getVariables() {
         return variables;
     }

@@ -33,8 +33,16 @@ public class Pool {
             pool.add(message);
         }else{
             //pool is full
-            int index = pool.stream().min(Comparator.comparing(ContextInformation::getCost)).hashCode();
-            pool.set(index, message);
+            //int index = pool.stream().min(Comparator.comparing(ContextInformation::getCost)).hashCode();
+            int maxCost = -1;
+            int maxIndex = -1;
+            for(int i = 0; i < pool.size(); i++){
+                if(pool.get(i).getCost() > maxCost){
+                    maxCost = pool.get(i).getCost();
+                    maxIndex = i;
+                }
+            }
+            pool.set(maxIndex, message);
         }
     }
 

@@ -26,11 +26,15 @@ public class Execution {
         List<Team> teams = new ArrayList<Team>();
         // TEAM 1
         List<Worker> workersT1 = new ArrayList<Worker>();
-        for (int i = 0; i < 3; i++){
-            workersT1.add(new Worker(i, size, i, new QAPModel(model)));
-        }
         List<Pool> poolsT1 = new ArrayList<Pool>();
-        poolsT1.add(new Pool(size));
+        poolsT1.add(new Pool(10));
+        poolsT1.add(new Pool(10));
+
+        for (int i = 0; i < 10; i++){
+            workersT1.add(new Worker(i, size, i%3, new QAPModel(model), 1000, 200000, poolsT1.get(0), poolsT1.get(0)));
+        }
+
+
 
         teams.add(new Team(workersT1, poolsT1));
 

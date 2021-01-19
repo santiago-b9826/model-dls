@@ -27,7 +27,7 @@ public class Team {
     }
 
     public void start(){
-        int targetCost = 350; //TODO: get parameters from configuration
+        int targetCost = 306; //TODO: get parameters from configuration
         boolean strictLow = false;
         int nProc = Runtime.getRuntime().availableProcessors();
         System.out.println("Número de procesos = "+nProc);
