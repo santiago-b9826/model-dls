@@ -29,14 +29,14 @@ public class RoTSearch extends Metaheuristic{
 
     public RoTSearch(int size){
         super(size);
-        super.mySolverType = 1; //TODO CPLSOptionsEnum.HeuristicsSupported.RoTS_SOL;
+        mySolverType = Type.ROT;
     }
 
-    public void configHeuristic(QAPModel problemModel /*, opts:ParamManager*/){
+    public void configHeuristic(QAPModel problemModel){
         super.configHeuristic(problemModel/*, opts*/);
-        this.tabuList = new int[problemModel.getSize()][problemModel.getSize()];
-        this.tabuDurationFactorUS = -1; //opts("-RoTS_t", -1.0);
-        this.aspirationFactorUS = -1; //opts("-RoTS_a", -1.0);
+        tabuList = new int[problemModel.getSize()][problemModel.getSize()];
+        tabuDurationFactorUS = -1; //opts("-RoTS_t", -1.0);
+        aspirationFactorUS = -1; //opts("-RoTS_a", -1.0);
     }
 
     private int tabuDurationLower;
@@ -51,25 +51,25 @@ public class RoTSearch extends Metaheuristic{
         for(int x = 0; x < tabuList.length; x++){
             Arrays.fill(tabuList[x], 0);
         }
-        if (this.tabuDurationFactorUS < 0){
-            this.tabuDurationFactor = -this.tabuDurationFactorUS;
+        if (tabuDurationFactorUS < 0){
+            tabuDurationFactor = -tabuDurationFactorUS;
         } else {
-            this.tabuDurationFactor = this.tabuDurationFactorUS;
+            tabuDurationFactor = tabuDurationFactorUS;
         }
         //Console.OUT.println("this.tabuDurationFactor: " + this.tabuDurationFactor);
-        this.tabuDuration = (int)(this.tabuDurationFactor * super.problemModel.getSize());
+        tabuDuration = (int)(tabuDurationFactor * problemModel.getSize());
         //Console.OUT.println("this.tabuDuration: " + this.tabuDuration);
-        if (this.aspirationFactorUS == -1.0)
-            this.aspirationFactor = al + (au - al) * random.nextDouble();
+        if (aspirationFactorUS == -1.0)
+            aspirationFactor = al + (au - al) * random.nextDouble();
         else
-            this.aspirationFactor = this.aspirationFactorUS;
+            aspirationFactor = aspirationFactorUS;
         //Console.OUT.println("this.aspirationFactor: " + this.aspirationFactor);
 
-        this.aspiration = (int) (this.aspirationFactor * super.problemModel.getSize() * super.problemModel.getSize());
+        aspiration = (int) (aspirationFactor * problemModel.getSize() * problemModel.getSize());
         //Console.OUT.println("this.aspiration: " + this.aspiration + "\n" + "Matriz tabulist: ");
-        for (int i = 0 ; i < super.problemModel.getSize(); i++){
-            for (int j = 0 ; j < super.problemModel.getSize(); j++){
-                this.tabuList[i][j] = -(super.problemModel.getSize() * i + j);
+        for (int i = 0 ; i < problemModel.getSize(); i++){
+            for (int j = 0 ; j < problemModel.getSize(); j++){
+                this.tabuList[i][j] = -(problemModel.getSize() * i + j);
                 //Console.OUT.print(this.tabuList(i,j) + " ");
             }
             //Console.OUT.println("\n");
@@ -83,23 +83,23 @@ public class RoTSearch extends Metaheuristic{
         int minDelta = Integer.MAX_VALUE;
         move.setFirst(Integer.MAX_VALUE);
         move.setSecond(Integer.MAX_VALUE);
-        this.alreadyAspired = false;
+        alreadyAspired = false;
 
         //Utils.show("Solution",super.variables);
 
-        for (i = 0; i < super.problemModel.getSize() - 1; i++){
-            for (j = i + 1; j < super.problemModel.getSize(); j++) {
+        for (i = 0; i < problemModel.getSize() - 1; i++){
+            for (j = i + 1; j < problemModel.getSize(); j++) {
                 newCost = problemModel.costIfSwap(currentCost,i,j);
                 //System.out.println("Costifswap in RoTS " + i + "," + j + ": " + newCost);
                 delta = newCost - currentCost;
 
-                this.autorized =
-                        (tabuList [i][super.variables[j]] < nIter) ||
-                                (tabuList [j][super.variables[i]] < nIter);
+                autorized =
+                        (tabuList [i][variables[j]] < nIter) ||
+                                (tabuList [j][variables[i]] < nIter);
 
-                this.aspired =
-                        (tabuList[i][super.variables[j]] < nIter - this.aspiration) ||
-                                (tabuList[j][super.variables[i]] < nIter - this.aspiration) ||
+                aspired =
+                        (tabuList[i][variables[j]] < (nIter - aspiration)) ||
+                                (tabuList[j][variables[i]] < (nIter - aspiration)) ||
                                 (newCost < bestCost);
 
                 if ((aspired && !alreadyAspired) ||	/* first move aspired */
@@ -141,19 +141,19 @@ public class RoTSearch extends Metaheuristic{
             swapVariables(move.getFirst(), move.getSecond()); //adSwap(maxI, minJ,csp);	
             nSwap++;
             //sz =  super.problemModel.size;
-            super.problemModel.executedSwap(size, move.getFirst(), move.getSecond(), super.variables);
+            problemModel.executedSwap(move.getFirst(), move.getSecond(), variables);
             /* forbid reverse move for a random number of iterations */
 
             //tabuList( move.getFirst(), cop_.variables(move.getSecond())) = this.nIter + (cube() * this.tabuDuration) as Int;
             int t1, t2;
             // t1 = (cube() * this.tabuDuration) as Int; 
             // t2 = (cube() * this.tabuDuration) as Int;
-            do t1 = (int) (cube() * this.tabuDuration); while(t1 <= 2);
-            do t2 = (int) (cube() * this.tabuDuration); while(t2 <= 2);
+            do t1 = (int) (cube() * tabuDuration); while(t1 <= 2);
+            do t2 = (int) (cube() * tabuDuration); while(t2 <= 2);
 
 
-            tabuList[move.getFirst()][super.variables[move.getSecond()]] = nIter + t1;
-            tabuList[move.getSecond()][super.variables[move.getFirst()]] = nIter + t2;
+            tabuList[move.getFirst()][variables[move.getSecond()]] = nIter + t1;
+            tabuList[move.getSecond()][variables[move.getFirst()]] = nIter + t2;
 
             //Utils.show("after swap", super.variables);
             // detect loc min
@@ -171,7 +171,7 @@ public class RoTSearch extends Metaheuristic{
 
     private double cube(){
         double ran1 = random.nextDouble();
-        if (this.tabuDurationFactorUS < 0)
+        if (tabuDurationFactorUS < 0)
             return ran1;
         return ran1 * ran1 * ran1;
     }
@@ -184,9 +184,9 @@ public class RoTSearch extends Metaheuristic{
      */
     protected int[] createSolverState() {
         int[] rotsState = new int[3];
-        rotsState[0] = super.mySolverType;
-        rotsState[1] = (int) (this.tabuDurationFactor * 10.0);
-        rotsState[2] = (int) (this.aspirationFactor * 10.0);
+        rotsState[0] = getMySolverType().getValue();
+        rotsState[1] = (int) (tabuDurationFactor * 10.0);
+        rotsState[2] = (int) (aspirationFactor * 10.0);
         return rotsState;
     }
 
@@ -199,20 +199,20 @@ public class RoTSearch extends Metaheuristic{
 
         int inSolverType = state[0];
 
-        if (inSolverType == super.mySolverType){
+        if (inSolverType == getMySolverType().getValue()){
             int intdf = (int) (state[1]/ 10.0);
             int inaf = (int) (state[2] / 10.0);
 
             // this.tabuDurationFactor = intdf;
             // this.aspirationFactor = inaf;
 
-            this.tabuDurationFactor = (this.tabuDurationFactor + intdf) / 2.0;
-            this.aspirationFactor = (this.aspirationFactor + inaf) / 2.0;
+            tabuDurationFactor = (tabuDurationFactor + intdf) / 2.0;
+            aspirationFactor = (aspirationFactor + inaf) / 2.0;
 
-            if (this.tabuDuration != -1)
-            this.tabuDuration = (int) (this.tabuDurationFactor * super.problemModel.getSize());
+            if (tabuDuration != -1)
+            tabuDuration = (int) (tabuDurationFactor * problemModel.getSize());
 
-            this.aspiration = (int) (this.aspirationFactor * super.problemModel.getSize() * super.problemModel.getSize());
+            aspiration = (int) (aspirationFactor * problemModel.getSize() * problemModel.getSize());
         }
     }
 

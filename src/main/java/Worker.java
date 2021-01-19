@@ -9,9 +9,6 @@ import java.util.concurrent.RecursiveAction;
 
 public class Worker extends RecursiveAction {
     private double seed;
-    private Date startTime;
-    private Date endTime;
-
     private Metaheuristic metaheuristic;
     private Random random;
     private boolean interTeamKill = false;
@@ -38,99 +35,30 @@ public class Worker extends RecursiveAction {
 
     private Metaheuristic.Type MHType;
 
-    public Worker(/*double seed,*/ int size, Metaheuristic.Type MHType, QAPModel model) {
+    public Worker(int size, Metaheuristic.Type MHType, QAPModel model) {
+        super();
         bestConf = new int[size];
         this.MHType = MHType;
         metaheuristic =  Metaheuristic.make(MHType, size);
         metaheuristic.configHeuristic(model);
+        //metaheuristic.configHeuristic(new QAPModel(model));
     }
 
     public double getSeed() {
         return seed;
     }
 
-    public Date getStartTime() {
-        return startTime;
-    }
-
-    public void setStartTime(Date startTime) {
-        this.startTime = startTime;
-    }
-
-    public Date getEndTime() {
-        return endTime;
-    }
-
-    public void setEndTime(Date endTime) {
-        this.endTime = endTime;
-    }
-
-    /*public void initialize(NodeConfig config, PoolConfig cplsPoolConfig, int problemSize, int inSeed){
-        val nsStr = System.getenv("NS");
-        if (nsStr != null)
-            this.ns = StringUtil.parseInt(nsStr);
-        else
-            this.ns = sz as Int / 4n;
-       this.metaheuristic = HeuristicFactory.make(config.getHeuristic(), this.sz);
-        this.random.setSeed(inSeed);
-        //do{
-        //	this.iwi = this.random.nextInt((5000*sz) as Int);
-        //}while(this.iwi < 50*sz);
-
-        //Console.OUT.println("Nodo: " + here.id + " IWI: " + this.iwi);
-        this.metaheuristic.setSeed(random.nextLong());
-        //semilla = inSeed + here.id; //La conservo solo para imprimirla juntos con la solución inicial
-        //this.metaheuristic.setSolverType(config.getHeuristic()); //Ya fue seteado en el constructor de la heurística
-        this.nodeConfig = config;
-        this.numberofTeams = config.getNumberOfTeams(); //Es necesario guardarla para la reinicialización
-        this.confArray = new Rail[State](numberofTeams, new State(size, -1, null, -1, null));
-        if(this.nodeConfig.getReportI()/problemSize > problemSize){
-                this.nodeConfig.setReportI((this.nodeConfig.getReportI()/problemSize));
-                //this.report = (this.nodeConfig.getReportI()/problemSize) as Int;
-                //this.update = this.nodeConfig.getUpdateI();
-        }
-
-        if(config.getRol() == CPLSOptionsEnum.NodeRoles.MASTER_NODE){
-            this.globalBestConf = new GlobalBestConf(sz, config.getNumberOfTeams(), this.random.nextLong());
-            //this.divCplsPool = new SmartPool(sz, configPool);
-            //this.flagsForMaster = new Rail[Boolean](config.getNumberOfTeams(), false);
-            //Console.OUT.println("MsgType_0. Se inicializa smartpool en el master. Place: " + here.id + ". TeamId: " + config.getTeamId());
-        }else if(config.getRol() == CPLSOptionsEnum.NodeRoles.HEAD_NODE){
-            this.teamPool = new SmartPool(sz, cplsPoolConfig);
-            this.offspringPool = new SmartPool(sz, cplsPoolConfig);
-            //this.stackForDiv = new StackForDiv(sz);
-            //this.divCplsPool = new SmartPool(sz, cplsPoolConfig);
-            //if(this.nodeConfig.getMasterHeuristic() != null && this.nodeConfig.getMasterHeuristic().equals("GA")){
-            //this.fromTheExplorersConfigs = new Rail[Rail[Int]](this.nodeConfig.getNodesPerTeam(), new Rail[Int](sz));
-            //}
-            //Console.OUT.println("MsgType_0. Se inicializa smartpool en head. Place: " + here.id + ". TeamId: " + config.getTeamId());
-        }
-   printConfig();
-    }
-   */
-
-    public void start() {
-        System.out.println("MsgType_0. Arrancando");
-        //val refsToPlaces = pointersComunication;
-        //stats.setTarget(targetCost);
-        //sampleAccStats.setTarget(targetCost);
-        //genAccStats.setTarget(targetCost);
-        int cost = Integer.MAX_VALUE;
+    @Override
+    public void compute() {
+        int cost;
         interTeamKill = false;
-        /*if (nodeConfig.getInterTeamCommTime() > 0 && nodeConfig.getNodesPerTeam() > 1 &&
-                nodeConfig.getRol() == CPLSOptionsEnum.NodeRoles.MASTER_NODE){
-            //async{
-                System.sleep(nodeConfig.getIniDelay());
-                interTeamActivity();
-            //}
-        }*/
-        //heuristicSolver.setSeed(random.nextLong());
-        System.out.println("Starting solving process in Meta type "+ MHType.toString());
-        double time = -System.nanoTime();
-        cost = solve();
-        time += System.nanoTime();
 
-        System.out.println("Solving process finished Meta type "+ MHType.toString()+". Time: "+time+" final cost: "+ cost);
+        System.out.println("Starting solving process in Meta type "+ MHType.toString());
+        initialTime = System.nanoTime();
+        cost = solve();
+        double exTime = (System.nanoTime() - initialTime)/1e6;
+
+        System.out.println("Solving process finished Meta type "+ MHType.toString()+". Time: "+exTime+" ms best cost: "+ bestCost);
         interTeamKill = true;
     }
 
@@ -145,7 +73,6 @@ public class Worker extends RecursiveAction {
         nIter = 0;
         nRestart = 0;
         bestConf = new int[metaheuristic.getSizeProblem()]; //new Rail[Int](this.heuristicSolver.getSizeProblem(), 0n);
-        //this.bestConfForTeam = new State(sz, Long.MAX_VALUE, null, -1 as Int,null);
         // clear Tot stats
         nIterTot = 0;
         //Jason: Migration begin
@@ -172,28 +99,19 @@ public class Worker extends RecursiveAction {
 
 
     public int solve() {
-        System.out.println("MsgType_0. pasando por solve.");
+        System.out.println("WORKER " +MHType+" pasando por solve.");
         initVar(target, strictLow);
-        //if(this.heuristicSolver instanceof PopulBasedHeuristic){
-        //	this.heuristicSolver.applyLS();
-        //}
         currentCost = metaheuristic.costOfSolution();
-
-
         bestConf = metaheuristic.getVariables().clone();
 
-        System.out.println("Solve cost="+this.currentCost);
+        System.out.println(MHType.toString()+": initial cost= "+ currentCost);
 
-        if (currentCost == 0)
-            bestCost = currentCost;
-        else
-            bestCost = Integer.MAX_VALUE;
+        bestCost = currentCost; //Best solution is the initial solution
 
-        //var count:Int = 1n;
-        while(this.currentCost != target){
-            if (this.nIter >= 1000){ //TODO: get parameter//this.nodeConfig.getMaxIters()){
+        while(currentCost >= 0){
+            if (nIter >= 1000){ //TODO: get parameter//this.nodeConfig.getMaxIters()){
                 //restart or finish
-                if(nRestart >= 3){ //TODO: get parameter //this.nodeConfig.getMaxRestarts()){
+                if(nRestart >= 0){ //TODO: get parameter //this.nodeConfig.getMaxRestarts()){
                     break;
                 }else{
                     nRestart++;
@@ -205,25 +123,19 @@ public class Worker extends RecursiveAction {
                     continue;
                 }
             }
-            //Console.OUT.println("Debug mark: Next step after of restart-end verification (HeuristicSolver.solve)");
+
             nIter++;
             currentCost = metaheuristic.search(currentCost, bestCost, nIter);
-            //if(!isOnDiversification){
-            //	this.nItersForUpdate++;
-            //}
+
             //Update the best configuration found so far
             updateCosts();
 
             //Kill solving process
-            //Runtime.probe();	// Give a chance to the other activities
             if(kill){
-                //Console.OUT.println("Nodo : " + here + ". " + "Me matan con iteraciones: " + this.nIter);
                 break;  // kill: End solving process
             }
-            //if(solForDiv){
-            //	this.heuristicSolver.tryInsertIndividual();
-            //}
-            //System.out.println("In main LOOP  time "+(System.nanoTime() - this.initialTime) +" cost="+this.currentCost);
+
+            //System.out.println("Type:"+MHType.toString()+" In main LOOP  time "+(System.nanoTime() - this.initialTime) +" cost="+this.currentCost);
             //Time out
             int maxTime = 1000;
             if(maxTime > 0 ){ //TODO: get parameter //nodeConfig.getMaxTime() > 0){
@@ -244,8 +156,11 @@ public class Worker extends RecursiveAction {
             interact();
         }
         //this.heuristicSolver.printPopulation();
-        System.out.println("Saliendo best cost: "+ bestCost+ "  iters: "+ nIterTot);
+        System.out.println(MHType.toString()+": Saliendo best cost: "+ bestCost+ "  iters: "+ nIterTot);
         updateTotStats();
+
+        metaheuristic.verify(bestConf);
+
         return this.bestCost;
     }
 
@@ -255,10 +170,9 @@ public class Worker extends RecursiveAction {
         //val sz = this.heuristicSolver.getSizeProblem();
         if(currentCost < bestCost){ //(totalCost <= bestCost)
             bestConf = metaheuristic.getVariables().clone();
-            //if(reportEachImprovement){
-              //  Console.OUT.println("Node " + here + ". Actual time: " + System.nanoTime() + ". Cost: " + this.currentCost);
-               // Utils.show("Solution: ",this.bestConf);
-            //}
+
+            System.out.println("                    "+ MHType.toString() + ": Current time: " + (System.nanoTime()-initialTime)/1e6 + ". Cost: " + this.currentCost);
+            metaheuristic.verify(bestConf);
             bestCost = currentCost;
 
             bestSent = false; // new best found, I must send it!
@@ -414,8 +328,8 @@ public class Worker extends RecursiveAction {
             }*/
         }
 
-    @Override
-    protected void compute() {
-        start();
-    }
+    //@Override
+    //protected void compute() {
+    //    start();
+    //}
 }

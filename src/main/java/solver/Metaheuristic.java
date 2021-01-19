@@ -18,15 +18,15 @@ public class Metaheuristic {
                 mappingMap.put(m.getValue(), m);
             }
         }
-        private final int func;
-        Type(int aFunc) {
-            func = aFunc;
+        private final int type;
+        Type(int aType) {
+            type = aType;
         }
         public int getValue() {
-            return func;
+            return type;
         }
-        public static Type getByFunc(int aFunc) {
-            return mappingMap.get(aFunc);
+        public static Type getByType(int aType) {
+            return mappingMap.get(aType);
         }
     }
 
@@ -34,15 +34,7 @@ public class Metaheuristic {
     protected int nSwap;
     protected QAPModel problemModel;
 
-    public void setMySolverType(int mySolverType) {
-        this.mySolverType = mySolverType;
-    }
-
-    public int getMySolverType() {
-        return mySolverType;
-    }
-
-    protected int mySolverType;
+    protected Type mySolverType;
     public int[] variables;
     protected MovePermutation move = new MovePermutation(-1, -1);
     protected int size;
@@ -66,9 +58,17 @@ public class Metaheuristic {
     }
 
 
+    public void setMySolverType(Type mySolverType) {
+        this.mySolverType = mySolverType;
+    }
+
+    public Type getMySolverType() {
+        return mySolverType;
+    }
+
     public void configHeuristic(QAPModel problemModel/*, ParamManager opts*/) {
         System.out.println("MetaH: config problem");
-        this.problemModel = new QAPModel(problemModel);
+        this.problemModel = problemModel;
     }
 
     /**
@@ -77,12 +77,12 @@ public class Metaheuristic {
      */
     public int search(int currentCost, int bestCost, int nIter) {
         // Swap two random variables
-        int size = this.problemModel.getSize();
+        int size = problemModel.getSize();
         move.setFirst(random.nextInt(problemModel.getSize()));
         move.setSecond(random.nextInt(problemModel.getSize()));
         swapVariables(move.getFirst(), move.getSecond());
         nSwap++;
-        this.problemModel.executedSwap(size, move.getFirst(), move.getSecond(), variables);
+        problemModel.executedSwap(move.getFirst(), move.getSecond(), variables);
         /*if(costo < currentCost){
  			System.out.print("Costo (RandomSearch): " + costo + ". Con variables: ");
  			System.out.print("\n");
@@ -113,9 +113,9 @@ public class Metaheuristic {
         this.random = new Random(inSeed/* + here.id*/);
     }
 
-    public void setSolverType(int mySolverType) {
-        this.mySolverType = mySolverType;
-    }
+    //public void setSolverType(int mySolverType) {
+    //    this.mySolverType = mySolverType;
+    //}
 
     public int[] getVariables() {
         //System.out.println("Nodo: " + here.id + " pidiendo variables para crear State");
@@ -186,8 +186,7 @@ public class Metaheuristic {
     }
 
     public void initVariables() {
-        System.out.println("MetaH: init var");
-        System.out.println("initilizing model");
+        System.out.println(mySolverType.toString()+": initilizing model");
         int baseValue = 0;
         for (int i = 0; i < variables.length; i++){
             variables[i] = baseValue + i;
@@ -201,7 +200,7 @@ public class Metaheuristic {
     }
 
     public void clearProblemModel() {
-        this.problemModel.clearProblemModel();
+        problemModel.clearProblemModel();
     }
 
     /*public void createNewSol() {
@@ -220,22 +219,22 @@ public class Metaheuristic {
     //}
 
     public int costOfSolution() {
-        return this.problemModel.costOfSolution(this.size, true, variables);
+        return problemModel.costOfSolution(size, true, variables);
     }
 
     public int getSizeProblem() {
-        return this.problemModel.getSize();
+        return problemModel.getSize();
     }
 
     public double getDistance(int[] a, int[] b) {
         //val size = this.problemModel.size;
-        return this.problemModel.distance(size, a, b);
+        return problemModel.distance(size, a, b);
 
     }
 
     public boolean verify(int[] conf) {
         //val size = this.problemModel.size;
-        return this.problemModel.verify(size, conf);
+        return problemModel.verify(size, conf);
 
     }
 
@@ -244,9 +243,11 @@ public class Metaheuristic {
         this.problemModel.displaySolution(size, conf);
     }*/
 
-    public int costOfSolution(int size, int[] conf) {
-        return this.problemModel.costOfSolution(size, conf);
-    }
+ /*   public int costOfSolution(int size, int[] conf) {
+        return problemModel.costOfSolution(size, conf);
+    }*/
+
+
 
 
     class MovePermutation {
@@ -271,4 +272,5 @@ public class Metaheuristic {
             this.second = s;
         }
     }
+
 }

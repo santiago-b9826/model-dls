@@ -36,31 +36,31 @@ public class AdaptiveSearch extends Metaheuristic{
 
     public AdaptiveSearch(int size){
         super(size);
-        super.mySolverType = 2; //TODO CPLSOptionsEnum.HeuristicsSupported.AS_SOL;
+        mySolverType = Type.AS;
     }
 
-    public void configHeuristic(QAPModel problemModel/*, opts:ParamManager*/){
-        super.configHeuristic(problemModel/*, opts*/);
-        this.mark = new int[problemModel.getSize()];
-        this.listIJ = new MovePermutation[problemModel.getSize()];
-        this.listI = new int[problemModel.getSize()];
-        this.nVarToReset = -1; //opts("--AS_varToReset",-1);
-        this.resetPercent = 10; //opts("--AS_resetPer",10n);
-        this.freezeLocMin = 5; //opts("--AS_freezeLocMin",5n);
-        this.freezeSwap = 5; //opts("--AS_freezeSwap",5n);
-        this.resetLimit = 5; //opts("--AS_resetLimit",5n);
-        this.probSelectLocMin = 0; //opts("--AS_probSelecLocMin", 0n);
-        this.firstBest = false; //opts("--AS_firstBest",0n) == 1n;
-        this.exhaustive = false; //opts("--AS_exhaustive",0n) == 1n;
+    public void configHeuristic(QAPModel problemModel){
+        super.configHeuristic(problemModel);
+        mark = new int[problemModel.getSize()];
+        listIJ = new MovePermutation[problemModel.getSize()];
+        listI = new int[problemModel.getSize()];
+        nVarToReset = -1; //opts("--AS_varToReset",-1);
+        resetPercent = 10; //opts("--AS_resetPer",10n);
+        freezeLocMin = 5; //opts("--AS_freezeLocMin",5n);
+        freezeSwap = 5; //opts("--AS_freezeSwap",5n);
+        resetLimit = 5; //opts("--AS_resetLimit",5n);
+        probSelectLocMin = 0; //opts("--AS_probSelecLocMin", 0n);
+        firstBest = false; //opts("--AS_firstBest",0n) == 1n;
+        exhaustive = false; //opts("--AS_exhaustive",0n) == 1n;
     }
 
 
     public void initVar(){
         super.initVar();
-        if (this.nVarToReset == -1){
-            this.nVarToReset = (((super.problemModel.getSize() * resetPercent) + 99) / 100);
-            if (this.nVarToReset < 2){
-                this.nVarToReset = 2;
+        if (nVarToReset == -1){
+            nVarToReset = (((problemModel.getSize() * resetPercent) + 99) / 100);
+            if (nVarToReset < 2){
+                nVarToReset = 2;
             }
         }
         Arrays.fill(mark, 0);
@@ -83,8 +83,8 @@ public class AdaptiveSearch extends Metaheuristic{
     public int search(int currentCost, int bestCost, int nIter) {
         int newCost = -1;
         //sz = this.problemModel.size;
-        if( !this.exhaustive ){
-            selectVarHighCost(problemModel);
+        if(!exhaustive){
+            selectVarHighCost();
             newCost = selectVarMinConflict(currentCost);
         } else {
             newCost = selectVarsToSwap(currentCost);
@@ -95,21 +95,21 @@ public class AdaptiveSearch extends Metaheuristic{
         nInPlateau++;
         int returnCost = currentCost;
         if (move.getFirst() == move.getSecond()){
-            this.nLocalMin++;
-            mark[move.getFirst()] = super.nSwap + this.freezeLocMin; //Mark(maxI, freeze_loc_min);
+            nLocalMin++;
+            mark[move.getFirst()] = nSwap + freezeLocMin; //Mark(maxI, freeze_loc_min);
 
-            if (this.nVarMarked + 1 >= this.resetLimit){
+            if (nVarMarked + 1 >= resetLimit){
                 onLocMin();
-                returnCost = doReset(this.nVarToReset, currentCost);//doReset(nb_var_to_reset,csp);
+                returnCost = doReset(nVarToReset, currentCost);//doReset(nb_var_to_reset,csp);
                 //returnCost = currentCost;
             }
             //return otherCost;
         }else{
-            mark[move.getFirst()] = super.nSwap + this.freezeSwap; //Mark(maxI, ad.freeze_swap);
-            mark[move.getSecond()] = super.nSwap + this.freezeSwap; //Mark(minJ, ad.freeze_swap);
+            mark[move.getFirst()] = nSwap + freezeSwap; //Mark(maxI, ad.freeze_swap);
+            mark[move.getSecond()] = nSwap + freezeSwap; //Mark(minJ, ad.freeze_swap);
             swapVariables(move.getFirst(), move.getSecond()); //adSwap(maxI, minJ,csp);
-            super.nSwap++;
-            problemModel.executedSwap(size, move.getFirst(), move.getSecond(), super.variables);
+            nSwap++;
+            problemModel.executedSwap(move.getFirst(), move.getSecond(), variables);
             //currentCost = newCost;
             returnCost = newCost ;
         }
@@ -135,7 +135,7 @@ public class AdaptiveSearch extends Metaheuristic{
         cost = reset(n, currentCost);
         Arrays.fill(mark, 0);
         nReset++;
-        return (cost < 0) ? this.problemModel.costOfSolution(size, true, super.variables) : cost; //Arg costofsol(1)
+        return (cost < 0) ? this.problemModel.costOfSolution(size, true, variables) : cost; //Arg costofsol(1)
     }
 
     /**
@@ -146,36 +146,36 @@ public class AdaptiveSearch extends Metaheuristic{
      *
      *
      */
-    private void selectVarHighCost(QAPModel problemModel){
+    private void selectVarHighCost(){
         int i =-1;
         int maxCost = 0;
         int maxVar = -1;
-        this.listInb = 0; //Number of elements
-        this.nVarMarked = 0;
+        listInb = 0; //Number of elements
+        nVarMarked = 0;
 
-        while((i = problemModel.nextI(i)) < super.problemModel.getSize()) { //False if i < 0
-            if (super.nSwap < this.mark[i]) {
-                this.nVarMarked++;
+        while((i = problemModel.nextI(i)) < problemModel.getSize()) { //False if i < 0
+            if (nSwap < mark[i]) {
+                nVarMarked++;
                 continue;
             }
             int x = problemModel.costOnVariable(i);
             if (x >= maxCost){
                 if (x > maxCost){
                     maxCost = x;
-                    this.listInb = 0;
+                    listInb = 0;
                 }
-                this.listI[this.listInb++] = i;
+                listI[listInb++] = i;
             }
         }
-        if (this.listInb == 0) // all variables are OK but the global cost is > 0 (can occur in SMTI with no BP but singles)
-        maxVar = random.nextInt(super.problemModel.getSize());
+        if (listInb == 0) // all variables are OK but the global cost is > 0 (can occur in SMTI with no BP but singles)
+        maxVar = random.nextInt(problemModel.getSize());
  		else {
             // select a maxCost variable from array
-            int sel = random.nextInt(this.listInb);
-            maxVar = this.listI[sel]; //This maxI must be local or only returns the value
+            int sel = random.nextInt(listInb);
+            maxVar = listI[sel]; //This maxI must be local or only returns the value
         }
-        this.nSameVar += this.listInb;
-        super.move.setFirst(maxVar);
+        nSameVar += listInb;
+        move.setFirst(maxVar);
     }
 
     /**
@@ -197,19 +197,19 @@ public class AdaptiveSearch extends Metaheuristic{
             int listJnb = 0;
             nCost = currentCost;
             j = -1;
-            while((j = problemModel.nextJ(first, j, false)) < super.problemModel.getSize()){// false if j < 0 //solverP.exhaustive???
-                if (super.nSwap < this.mark[j]) {
+            while((j = problemModel.nextJ(first, j, false)) < problemModel.getSize()){// false if j < 0 //solverP.exhaustive???
+                if (nSwap < mark[j]) {
                     continue;
                 }
                 cost = problemModel.costIfSwap(currentCost, j, first);
-                if (this.probSelectLocMin <= 100 && j == first) continue;
+                if (probSelectLocMin <= 100 && j == first) continue;
 
                 if (cost < nCost){
                     listJnb = 1;
                     nCost = cost;
                     second = j;
-                    if (this.firstBest){
-                        super.move.setSecond(second);
+                    if (firstBest){
+                        move.setSecond(second);
                         return nCost;
                     }
                 } else if (cost == nCost){
@@ -218,22 +218,22 @@ public class AdaptiveSearch extends Metaheuristic{
                 }
             }
 
-            if (this.probSelectLocMin <= 100) {
-                if (nCost >= currentCost && (random.nextInt(100) < this.probSelectLocMin ||(this.listInb <= 1 && listJnb <= 1))) {
+            if (probSelectLocMin <= 100) {
+                if (nCost >= currentCost && (random.nextInt(100) < probSelectLocMin ||(listInb <= 1 && listJnb <= 1))) {
                     second = first;
-                    super.move.setSecond(second);
+                    move.setSecond(second);
                     return nCost;
                 }
                 if (listJnb == 0) {
                     //this.nIter++;
-                    int sel = random.nextInt(this.listInb);
+                    int sel = random.nextInt(listInb);
                     first = listI[sel];
-                    super.move.setFirst(first);
+                    move.setFirst(first);
                     flagOut = true;
                 }
             }
         } while(flagOut);
-        super.move.setSecond(second);
+        move.setSecond(second);
         return nCost;
     }
 
@@ -250,17 +250,17 @@ public class AdaptiveSearch extends Metaheuristic{
         /** For Exhaustive search */
         int nListIJ = 0;
         int nCost = Integer.MAX_VALUE ;
-        this.nVarMarked = 0;
+        nVarMarked = 0;
         first = -1;
 
-        while((first = problemModel.nextI(first)) < super.problemModel.getSize()) {
-            if (super.nSwap < this.mark[first]) {
-                this.nVarMarked++;
+        while((first = problemModel.nextI(first)) < problemModel.getSize()) {
+            if (nSwap < mark[first]) {
+                nVarMarked++;
                 continue;
             }
             second = -1;
-            while((second = problemModel.nextJ(first, second, true)) < super.problemModel.getSize()){
-                if (super.nSwap < this.mark[second]) {
+            while((second = problemModel.nextJ(first, second, true)) < problemModel.getSize()){
+                if (nSwap < mark[second]) {
                     continue;
                 }
                 int x = problemModel.costIfSwap(currentCost, first, second);
@@ -268,39 +268,39 @@ public class AdaptiveSearch extends Metaheuristic{
                     if (x < nCost) {
                         nCost = x;
                         nListIJ = 0;
-                        if (this.firstBest && x < currentCost) {
-                            super.move.setFirst(first);
-                            super.move.setSecond(second);
+                        if (firstBest && x < currentCost) {
+                            move.setFirst(first);
+                            move.setSecond(second);
                             return nCost;
                         }
                     }
-                    this.listIJ[nListIJ] = new MovePermutation(first,second);
-                    nListIJ = ((nListIJ + 1) % super.problemModel.getSize());
+                    listIJ[nListIJ] = new MovePermutation(first,second);
+                    nListIJ = ((nListIJ + 1) % problemModel.getSize());
                 }
             }
         }
 
-        this.nSameVar += nListIJ;
+        nSameVar += nListIJ;
         if (nCost >= currentCost) {
-            if (nListIJ == 0 || (( this.probSelectLocMin <= 100) && random.nextInt(100) < this.probSelectLocMin)) {
+            if (nListIJ == 0 || (( probSelectLocMin <= 100) && random.nextInt(100) < probSelectLocMin)) {
                 int i;
-                for(i = 0; super.nSwap < mark[i]; i++){}
-                super.move.setFirst(i);
-                super.move.setSecond(i);
+                for(i = 0; nSwap < mark[i]; i++){}
+                move.setFirst(i);
+                move.setSecond(i);
                 return nCost;//goto end;
             }
 
             int lm;
-            if (!(this.probSelectLocMin <= 100) && (lm = random.nextInt(nListIJ + super.problemModel.getSize())) < super.problemModel.getSize()) {
-                super.move.setFirst(lm);
-                super.move.setSecond(lm);
+            if (!(probSelectLocMin <= 100) && (lm = random.nextInt(nListIJ + problemModel.getSize())) < problemModel.getSize()) {
+                move.setFirst(lm);
+                move.setSecond(lm);
                 return nCost;//goto end;
             }
         }
 
         int sel = random.nextInt(nListIJ);
-        super.move.setFirst(listIJ[sel].getFirst());
-        super.move.setSecond(listIJ[sel].getSecond());
+        move.setFirst(listIJ[sel].getFirst());
+        move.setSecond(listIJ[sel].getSecond());
         return nCost;
     }
 

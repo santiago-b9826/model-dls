@@ -16,96 +16,69 @@ public class QAPModel {
     private int size;
     private Logger logger;
     private int baseValue;
-    protected Random random;
-    protected String inPathVectorSol;
+    private Random random;
+    //protected String inPathVectorSol;
 
     public QAPModel(int size){
         this.size = size;
-        this.logger = Logger.getLogger(QAPModel.class.getName());
+        logger = Logger.getLogger(QAPModel.class.getName());
         //System.out.println("Constructor de QAPModel invocado");
         random = new Random();
-        this.flow = new int[size][size];
-        this.dist = new int[size][size];
-        this.delta = new int[size][size];
+        flow = new int[size][size];
+        dist = new int[size][size];
+        delta = new int[size][size];
+        baseValue = 0;
     }
 
     public QAPModel(QAPModel model){
-        this.size = model.getSize();
-        this.logger = Logger.getLogger(QAPModel.class.getName());
+        size = model.getSize();
+        logger = Logger.getLogger(QAPModel.class.getName());
         //System.out.println("Constructor de QAPModel invocado");
         random = new Random();
-        this.flow = model.flow.clone();
-        this.dist = model.dist.clone();
-        this.delta = model.delta.clone();
+        flow = model.flow.clone();
+        dist = model.dist.clone();
+        delta = model.delta.clone();
+        opt = model.opt;
+        bound = model.bound;
+        bks = model.bks;
+        baseValue = model.baseValue;
     }
 
-    public QAPModel(int size, String inPathDataProblem, String inPathVectorSol, int baseValue){
-        this.size = size;
-        this.flow = new int[size][size];
-        this.dist = new int[size][size];
-        this.delta = new int[size][size];
-        random = new Random();
-    }
-
-    public QAPModel(int size, int[][] mf, int[][] md){
-        this.size = size;
-        this.flow = mf;
-        this.dist = md;
-        this.flow = new int[size][size];
-        this.dist = new int[size][size];
-        this.delta = new int[size][size];
-        random = new Random();
-    }
 
     public int getSize(){
-        final int size = this.size;
         return size;
     }
 
 
-    /*public int[] initialize(int inSeed){
-        System.out.println("initilizing model");
-        int[] variables = new int[size];
-        for (int i = 0; i < variables.length; i++){
-            variables[i] = this.baseValue + i;
-        }
-        this.random.setSeed(inSeed);
-        for (int i = size - 1 ; i > 0; i--) {
-            int j = random.nextInt(i + 1);
-            int x = variables[i];
-            variables[i] = variables[j];
-            variables[j] = x;
-        }
-        return variables;
-    }*/
-
     /**
      *  Compute the cost difference if elements i and j are permuted
      */
-    public int computeDelta(int size, int i, int j, int[] variables) {
+    public int computeDelta(int i, int j, int[] variables) {
         int pI = variables[i];
         int pJ = variables[j];
         int k, pK;
-        int dis = (flow[i][i] - flow[j][j]) * (this.dist[pJ][pJ] - this.dist[pI][pI]) +
-                (flow[i][j] - flow[j][i]) * (this.dist[pJ][pI] - this.dist[pI][pJ]);
+        int dis = (flow[i][i] - flow[j][j]) * (dist[pJ][pJ] - dist[pI][pI]) +
+                (flow[i][j] - flow[j][i]) * (dist[pJ][pI] - dist[pI][pJ]);
 
         for(k = 0; k < i; k++){
-            pK = variables[k];
-            dis += (this.flow[k][i] - this.flow[k][j]) * (this.dist[pK][pJ] - this.dist[pK][pI]) +
-                    (this.flow[i][k] - this.flow[j][k]) * (this.dist[pJ][pK] - this.dist[pI][pK]);
+            dis = getDis(i, j, variables, pI, pJ, k, dis);
         }
 
         while(++k < j){
-            pK = variables[k];
-            dis += (this.flow[k][i] - this.flow[k][j]) * (this.dist[pK][pJ] - this.dist[pK][pI]) +
-                    (this.flow[i][k] - this.flow[j][k]) * (this.dist[pJ][pK] - this.dist[pI][pK]);
+            dis = getDis(i, j, variables, pI, pJ, k, dis);
         }
 
         while(++k < size){
-            pK = variables[k];
-            dis += (this.flow[k][i] - this.flow[k][j]) * (this.dist[pK][pJ] - this.dist[pK][pI]) +
-                    (this.flow[i][k] - this.flow[j][k]) * (this.dist[pJ][pK] - this.dist[pI][pK]);
+            dis = getDis(i, j, variables, pI, pJ, k, dis);
         }
+        return dis;
+    }
+
+    private int getDis(int i, int j, int[] variables, int pI, int pJ, int k, int dis) {
+        int pK;
+        pK = variables[k];
+        dis += (flow[k][i] - flow[k][j]) * (dist[pK][pJ] - dist[pK][pI]) +
+                (flow[i][k] - flow[j][k]) * (dist[pJ][pK] - dist[pI][pK]);
         return dis;
     }
 
@@ -114,28 +87,28 @@ public class QAPModel {
      *  but the value of delta[i][j] is supposed to be known before
      *  the transposition of elements r and s.
      */
-    public int computeDeltaPart(int size, int i, int j, int  r, int s, int[] variables) {
+    private int computeDeltaPart(int i, int j, int r, int s, int[] variables) {
         int pI = variables[i];
         int pJ = variables[j];
         int pR = variables[r];
         int pS = variables[s];
 
         return (delta[i][j] +
-                (this.flow[r][i] - this.flow[r][j] + this.flow[s][j] - this.flow[s][i]) *
-        (this.dist[pS][pI] - this.dist[pS][pJ] + this.dist[pR][pJ] - this.dist[pR][pI]) +
-                (this.flow[i][r] - this.flow[j][r] + this.flow[j][s] - this.flow[i][s]) *
-        (this.dist[pI][pS] - this.dist[pJ][pS] + this.dist[pJ][pR] - this.dist[pI][pR]));
+                (flow[r][i] - flow[r][j] + flow[s][j] - flow[s][i]) *
+        (dist[pS][pI] - dist[pS][pJ] + dist[pR][pJ] - dist[pR][pI]) +
+                (flow[i][r] - flow[j][r] + flow[j][s] - flow[i][s]) *
+        (dist[pI][pS] - dist[pJ][pS] + dist[pJ][pR] - dist[pI][pR]));
     }
 
     public int costOfSolution(int size, boolean shouldBeRecorded, int[] variables) {
         int r = 0;
         for(int i = 0; i < size; i++)
             for(int j = 0; j < size; j++)
-                r += this.flow[i][j] * this.dist[variables[i]][variables[j]];
+                r += flow[i][j] * dist[variables[i]][variables[j]];
         if (shouldBeRecorded)
             for(int i = 0; i < size; i++)
                 for(int j = i + 1; j < size; j++){
-                    delta[i][j] = computeDelta(size, i, j, variables);
+                    delta[i][j] = computeDelta(i, j, variables);
                     //System.out.println("DeltaPart calculado");
                 }
         //System.out.println("MsgType_0. CostOfSolution ejecutado en QAPModel");
@@ -143,13 +116,13 @@ public class QAPModel {
     }
 
     //Jason: New method for calculate costofSolution for an input solution
-    public int costOfSolution(int size, int[] solution) {
+    /*public int costOfSolution(int size, int[] solution) {
         int r = 0;
         for(int i = 0; i < size; i++)
             for(int j = 0; j < size; j++)
-                r += this.flow[i][j] * this.dist[solution[i]][solution[j]];
+                r += flow[i][j] * dist[solution[i]][solution[j]];
         return r;
-    }
+    }*/
 
     public int costIfSwap(int currentCost, int i1, int i2) {
         //return currentCost + delta(i1 as Int , i2 as Int) as Int;
@@ -163,7 +136,7 @@ public class QAPModel {
         return currentCost + delta[i1v][i2v];
     }
 
-    public void executedSwap(int size, int i1, int i2, int[] variables) {
+    public void executedSwap(int i1, int i2, int[] variables) {
         int temp = variables[i1];
         if (i1 >= i2){
             int tmp = i1;
@@ -173,9 +146,9 @@ public class QAPModel {
         for (int i = 0; i < size; i++)
             for (int j = i + 1; j < size; j++)
                 if (i != i1 && i != i2 && j != i1 && j != i2)
-                    delta[i][j] = computeDeltaPart(size, i, j, i1, i2, variables);
+                    delta[i][j] = computeDeltaPart(i, j, i1, i2, variables);
  				else
-                    delta[i][j] = computeDelta(size, i, j, variables);
+                    delta[i][j] = computeDelta(i, j, variables);
     }
 
     /**
@@ -212,7 +185,6 @@ public class QAPModel {
      *  @return true if success, false if filePath is a directory
      */
     public boolean loadData(String filePath){
-        long loadTime = -System.nanoTime();
         File filep = new File(filePath);
         if (filep.isDirectory()) return false;
         System.out.println("\n--   Solving "+filePath+" ");
@@ -226,9 +198,9 @@ public class QAPModel {
         String fLine = fr.nextLine(); //get first line
         int[] header = readParameters(fLine);
         int sizeF = header[0];
-        int opt = header[1];
-        int bks = header[2];
-        int bound = 0;
+        opt = header[1];
+        bks = header[2];
+        bound = 0;
         if(opt < 0){
             bound = -opt;
             opt = 0;
@@ -304,7 +276,7 @@ public class QAPModel {
     }
 
     public void clearProblemModel(){
-        this.delta = new int[this.size][this.size];
+        delta = new int[size][size];
     }
 
     public void printMatrix(int size, int[][] matrix){
@@ -327,17 +299,19 @@ public class QAPModel {
         //Check Permutation
         int[] permutV = new int[size];
         int baseV = this.baseValue;
-        for (int i = 0; i < match.length; i++){
-            int value = match[i];
+        for (int value : match) {
             permutV[value - baseV]++;
-            if (permutV[value-baseV] > 1){
-                System.out.println("Not valid permutation, value "+ value +" is repeted");
+            if (permutV[value - baseV] > 1) {
+                System.out.println("Not valid permutation, value " + value + " is repeted");
             }
         }
         int r  = 0;
-        for(int i = 0; i < size; i++)
-            for(int j = 0; j < size; j++)
+        for(int i = 0; i < size; i++) {
+            for (int j = 0; j < size; j++) {
                 r += this.flow[i][j] * this.dist[match[i]][match[j]];
+            }
+        }
+        System.out.println("Verified Cost: "+ r);
         return (r == 0);
     }
 

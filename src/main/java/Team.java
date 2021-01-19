@@ -21,15 +21,18 @@ public class Team {
         return pools;
     }
 
-    // TODO: start each worker on a different thread
     public void start(){
-        int targetCost = 0; //TODO: get parameters from configuration
+        int targetCost = 306; //TODO: get parameters from configuration
         boolean strictLow = false;
-        ForkJoinPool myPool = new ForkJoinPool(Runtime.getRuntime().availableProcessors());
+        int nProc = Runtime.getRuntime().availableProcessors();
+        System.out.println("Número de procesos = "+nProc);
+        //ForkJoinPool myPool = new ForkJoinPool(nProc);
 
         for (Worker w: workers) {
-            w.setLimits(targetCost, strictLow);
-            myPool.submit(w);
+            //w.setLimits(targetCost, strictLow);
+            //myPool.invoke(w);
+            //w.compute();
+            w.fork();
         }
 
         for (Worker w: workers) {
