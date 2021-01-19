@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -26,7 +27,7 @@ public class Team {
     }
 
     public void start(){
-        int targetCost = 306; //TODO: get parameters from configuration
+        int targetCost = 350; //TODO: get parameters from configuration
         boolean strictLow = false;
         int nProc = Runtime.getRuntime().availableProcessors();
         System.out.println("Número de procesos = "+nProc);
@@ -34,9 +35,10 @@ public class Team {
         //ExecutorService EXEC = Executors.newCachedThreadPool();
 
         ForkJoinPool myPool = new ForkJoinPool(nProc);
+        AtomicBoolean kill = new AtomicBoolean(false);
 
         for (int i = 0; i < workers.size(); i++) {
-            //w.setLimits(targetCost, strictLow);
+            workers.get(i).setWorker(kill, targetCost, strictLow);
             myPool.submit(workers.get(i));
             //workers.get(i).compute();
             //w.fork();

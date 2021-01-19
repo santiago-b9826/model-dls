@@ -1,6 +1,5 @@
 package main.java.solver;
 
-import com.sun.org.apache.xml.internal.res.XMLErrorResources_tr;
 import main.java.model.QAPModel;
 
 import java.util.HashMap;
